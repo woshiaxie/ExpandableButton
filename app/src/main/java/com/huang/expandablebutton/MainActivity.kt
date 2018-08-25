@@ -12,7 +12,7 @@ import android.widget.Toast
 import com.huang.library.ExpandableButton
 
 class MainActivity : AppCompatActivity() {
-
+    private var in_out_duration: Long = 800
     private var i = 0
     private var lastOffset: Float = 0f;
 
@@ -80,7 +80,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showButtonOut() {
-        var animator: ObjectAnimator = ObjectAnimator.ofFloat(expandableBtn, "translationX", -300f).setDuration(600);
+        expandableBtn?.clearAnimation()
+        var animator: ObjectAnimator = ObjectAnimator.
+                ofFloat(expandableBtn, "translationX", -300f)
+                .setDuration(in_out_duration);
         animator.addListener(
                 object: Animator.AnimatorListener{
                     override fun onAnimationRepeat(animation: Animator?) {
@@ -100,11 +103,14 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
         )
-        animator.start();
+        animator.start()
     }
 
     fun showButtonIn() {
-        var animator: ObjectAnimator = ObjectAnimator.ofFloat(expandableBtn, "translationX", 0f).setDuration(600);
+        expandableBtn?.clearAnimation()
+        var animator: ObjectAnimator = ObjectAnimator.
+                ofFloat(expandableBtn, "translationX", 0f).
+                setDuration(in_out_duration);
         animator.addListener(
                 object: Animator.AnimatorListener{
                     override fun onAnimationRepeat(animation: Animator?) {

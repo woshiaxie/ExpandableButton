@@ -41,6 +41,8 @@
         <!--整个组件的边框圆角-->
         <attr name="borderCorner" format="dimension"/>
 
+        <!--收缩/伸展动画时长-->
+        <attr name="duration" format="integer"/>
     </declare-styleable>
 
 </resources>

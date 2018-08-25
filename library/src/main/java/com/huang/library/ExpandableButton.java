@@ -1,21 +1,24 @@
 package com.huang.library;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Interpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -28,7 +31,8 @@ import static com.huang.library.util.CommonUtils.createRoundCornorDrawable;
 
 public class ExpandableButton extends LinearLayout {
     private static final String TAG = "MyLog";
-
+    private final float MAX_VALUE = 1.0f;
+    private final float MIN_VALUE = 0f;
     private ExpandableButton sfb;
     private WindowManager wm;
     private int windowWidth;
@@ -49,12 +53,9 @@ public class ExpandableButton extends LinearLayout {
 
     private int step = 80;  //拉伸步长
     private int degrees = 0;    //旋转度数
-    private float stepRatio = 0.16f;   //旋转动画的步长比例，覆盖step值。
 
     private int spaceBetweenContentAndIcon = 0;
 
-    private final static int IS_SLIDE_DECREASE = 0;  //递减状态
-    private static final int IS_SLIDE_INCREASE = 1;  //递增状态
 
     private boolean isFolded = false;
     private boolean leftStart = false; //图标是否在左侧绘制
@@ -71,13 +72,12 @@ public class ExpandableButton extends LinearLayout {
 
     private int gapBetweenCircles;
 
-    private View contentView;                 //textview
+    private View contentView;
     private View iconView;
 
     private int textWidth;              //文本宽度
     private int textHeight;             //文本高度
 
-//    private boolean isIconRotatable = false; //是否支持icon旋转动画；目前这个旋转动画是有问题的
     private int iconWidth;  //icon宽度
     private int iconHeight; //icon高度
 
@@ -88,17 +88,18 @@ public class ExpandableButton extends LinearLayout {
 
     private Paint paint;
 
-
     private FoldListener foldListener;        //折叠监听
     private OnClickListener onClickListener;  //点击监听
     private boolean canClick;
 
-    private Handler mHandler = initHandler();
+    private int duration = 1000;
+    private ValueAnimator foldAnimator;
+    private ValueAnimator unfoldAnimator;
+    private Interpolator interpolator;
 
     public ExpandableButton(Context context) {
         this(context, null);
     }
-
     public ExpandableButton(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context, attrs);
@@ -111,9 +112,10 @@ public class ExpandableButton extends LinearLayout {
 
         initData();
 
-        initText(context);
+        initContentView(context);
         initIconView(context);
         initIconViewRotate();
+        initAnimator();
     }
     private void initSelf() {
         this.setOrientation(LinearLayout.HORIZONTAL);
@@ -127,14 +129,12 @@ public class ExpandableButton extends LinearLayout {
         windowWidth = wm.getDefaultDisplay().getWidth();
         sfb = this;
     }
-
     private void initData() {
         mLeftCircle = new Circle();
         mRightCircle = new Circle();
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setColor(Color.WHITE);
     }
-
     private void initFields(Context context, AttributeSet attrs) {
         TypedArray type = context.obtainStyledAttributes(attrs, R.styleable.ExpandableButton);
 
@@ -157,12 +157,7 @@ public class ExpandableButton extends LinearLayout {
         iconBackgroundColor = type.getColor(R.styleable.ExpandableButton_iconBackgroundColor, Color.WHITE);
 
         /* icon旋转部分 */
-//        isIconRotatable = type.getBoolean(R.styleable.FoldableButton_iconRotatable, false);
         degrees = type.getInteger(R.styleable.ExpandableButton_iconRotateDegree, 90);
-        stepRatio = type.getFloat(R.styleable.ExpandableButton_stepRatio, 0.16f);
-        if (stepRatio < 0 || stepRatio > 1.0f) {
-            stepRatio = 0.16f;
-        }
 
         /* 整体设置部分 */
         maxWidth = type.getDimensionPixelSize(R.styleable.ExpandableButton_maxWidth, windowWidth);
@@ -179,10 +174,10 @@ public class ExpandableButton extends LinearLayout {
         borderWidth = type.getDimensionPixelSize(R.styleable.ExpandableButton_borderWidth, 0);
         borderCornerRadius = type.getDimensionPixelSize(R.styleable.ExpandableButton_borderCorner, -1);
 
+        duration = type.getInteger(R.styleable.ExpandableButton_duration, 1000);
         type.recycle();
     }
-
-    private void initText(Context context){
+    private void initContentView(Context context){
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
 
         TextView tv = new TextView(context);
@@ -199,7 +194,6 @@ public class ExpandableButton extends LinearLayout {
         addView(tv,params);
         requestLayout();
     }
-
     private void initIconView(Context context){
         LinearLayout.LayoutParams rootParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
         LinearLayout rootView = new LinearLayout(getContext());
@@ -228,7 +222,6 @@ public class ExpandableButton extends LinearLayout {
 
         requestLayout();
     }
-
     private void initIconViewRotate() {
         if (iconView == null) {
             return;
@@ -240,11 +233,100 @@ public class ExpandableButton extends LinearLayout {
         }
     }
 
-    private Handler initHandler() {
-        Handler handler = new FoldableButtonHandler();
-        return handler;
-    }
+    private void initAnimator(){
+        foldAnimator = new ValueAnimator();
+        foldAnimator.setDuration(duration);
+        foldAnimator.setFloatValues(MAX_VALUE,MIN_VALUE);
+        foldAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) { }
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                calculateContentToShow(true, true);
+                //动画结束 恢复默认状态
+                if (leftStart) {
+                    mLeftCircle.x = radius + borderWidth;
+                    mRightCircle.x = radius + borderWidth;
+                } else {
+                    mRightCircle.x = width - radius - borderWidth;
+                    mLeftCircle.x = mRightCircle.x ;
+                }
 
+                //旋转icon
+                if (iconView != null) {
+                    rotateDegrees = 0;
+                    iconView.setRotation(rotateDegrees);
+                }
+
+                setEnabled(true);
+                isFolded = true;
+                //折叠回调
+                if (foldListener != null) {
+                    foldListener.onFold(isFolded, sfb);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) { }
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+        foldAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float progress = (float)animation.getAnimatedValue();
+                calculateFieldsWhenFold(progress);
+            }
+        });
+
+        unfoldAnimator = new ValueAnimator();
+        unfoldAnimator.setDuration(duration);
+        unfoldAnimator.setFloatValues(MIN_VALUE, MAX_VALUE);
+        unfoldAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) { }
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                //动画结束 恢复默认状态
+                if (leftStart) {
+                    mRightCircle.x = width - radius - borderWidth;
+                } else {
+                    mLeftCircle.x = radius + borderWidth;
+                }
+                calculateContentToShow(true, false);
+
+                //动画结束 恢复默认状态
+                rotateDegrees = degrees;
+                if (iconView != null) {
+                    iconView.setRotation(rotateDegrees);
+                }
+
+
+                setEnabled(true);
+                isFolded = false;
+                //折叠回调
+                if (foldListener != null) {
+                    foldListener.onFold(isFolded, sfb);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) { }
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+        unfoldAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float progress = (float)animation.getAnimatedValue();
+                Log.d("MyLog","\nprogress=="+progress);
+                calculateFieldsWhenUnfold(progress);
+            }
+        });
+
+
+        interpolator = new LinearInterpolator();
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -288,9 +370,6 @@ public class ExpandableButton extends LinearLayout {
                 inited = true;
             }
             gapBetweenCircles = Math.abs(mRightCircle.x - mLeftCircle.x);
-
-            //初始化收缩、伸展的步长
-            step = (int)((width - iconWidth) * stepRatio);
         }
         setMeasuredDimension(width,height);
 
@@ -514,16 +593,22 @@ public class ExpandableButton extends LinearLayout {
 
     //递减状态
     public void switchToFold() {
+        if (isFolded) {
+            return;
+        }
         setEnabled(false);  //滑动时不给点击事件
-        isFolded = false; //记录递增还是递减状态
-        mHandler.sendEmptyMessageDelayed(IS_SLIDE_DECREASE, 40);
+        isFolded = true; //记录递增还是递减状态
+        foldAnimator.start();
     }
 
     //递增状态
     public void switchToUnFold() {
+        if (!isFolded) {
+            return;
+        }
         setEnabled(false);  //滑动时不给点击事件
-        isFolded = true;  //记录递增还是递减状态
-        mHandler.sendEmptyMessageDelayed(IS_SLIDE_INCREASE, 40);
+        isFolded = false;  //记录递增还是递减状态
+        unfoldAnimator.start();
     }
 
     //外部调用
@@ -558,94 +643,46 @@ public class ExpandableButton extends LinearLayout {
         void onClick(ExpandableButton sfb);
     }
 
-    private void calculateFieldsWhenDecrease() {
+    private void calculateFieldsWhenFold(float progress) {
         isFolded = true;
-        gapBetweenCircles = Math.abs(mRightCircle.x - mLeftCircle.x);
-        if (gapBetweenCircles > step + radius +  borderWidth) {
-            if (leftStart) {
-                mRightCircle.x -= step;
-            } else {
-                mLeftCircle.x += step;
-            }
+        step = (int)(gapBetweenCircles * progress);
 
-            //旋转icon
-            if (iconView != null) {
-                rotateDegrees = (int)(degrees * ((double)gapBetweenCircles/ (double)(width - 2 * radius)));
-                iconView.setRotation(rotateDegrees);
-            }
-            calculateContentToShow(false , true);
-
-            mHandler.sendEmptyMessageDelayed(IS_SLIDE_DECREASE, 16);
+        if (leftStart) {
+            mRightCircle.x = mLeftCircle.x + step;
         } else {
-            calculateContentToShow(true, true);
-            //动画结束 恢复默认状态
-            if (leftStart) {
-                mLeftCircle.x = radius + borderWidth;
-                mRightCircle.x = radius + borderWidth;
-            } else {
-                mRightCircle.x = width - radius - borderWidth;
-                mLeftCircle.x = mRightCircle.x ;
-            }
-            gapBetweenCircles = 0;
-
-            //旋转icon
-            if (iconView != null) {
-                rotateDegrees = 0;
-                iconView.setRotation(rotateDegrees);
-            }
-
-            setEnabled(true);
-            isFolded = true;
-            //折叠回调
-            if (foldListener != null) {
-                foldListener.onFold(isFolded, sfb);
-            }
+            mLeftCircle.x = mRightCircle.x - step;
         }
+
+        //旋转icon
+        if (iconView != null) {
+            rotateDegrees = (int)(degrees * progress);
+            iconView.setRotation(rotateDegrees);
+        }
+        calculateContentToShow(false , true);
+        requestLayout();
+
     }
 
-    private void calculateFieldsWhenIncrease() {
+    private void calculateFieldsWhenUnfold(float progress) {
         isFolded = false;
-        gapBetweenCircles = Math.abs(mRightCircle.x - mLeftCircle.x);
-        if (gapBetweenCircles <= width - 3 * radius) {
-            //修改两个圆的位置
-            if (leftStart) {
-                mRightCircle.x += step;
-            } else {
-                mLeftCircle.x -= step;
-            }
+        step = (int)(gapBetweenCircles * progress);
 
-
-            calculateContentToShow(false, false);
-            //iconView旋转控制
-            if(iconView != null ){
-                rotateDegrees = (int)(degrees * ((double)gapBetweenCircles/ (double)(width - 2 * radius)));
-                iconView.setRotation(rotateDegrees);
-            }
-            mHandler.sendEmptyMessageDelayed(IS_SLIDE_INCREASE, 16);
+        //修改两个圆的位置
+        if (leftStart) {
+            mRightCircle.x = mLeftCircle.x + step;
         } else {
-            //动画结束 恢复默认状态
-            if (leftStart) {
-                mRightCircle.x = width - radius - borderWidth;
-            } else {
-                mLeftCircle.x = radius + borderWidth;
-            }
-            calculateContentToShow(true, false);
-
-            gapBetweenCircles = width - radius;
-            //动画结束 恢复默认状态
-            rotateDegrees = degrees;
-            if (iconView != null) {
-                iconView.setRotation(rotateDegrees);
-            }
-
-
-            setEnabled(true);
-            isFolded = false;
-            //折叠回调
-            if (foldListener != null) {
-                foldListener.onFold(isFolded, sfb);
-            }
+            mLeftCircle.x = mRightCircle.x - step;
         }
+        Log.d("MyLog","progress == "+progress+", step == " + (gapBetweenCircles * progress) +",mRightCircle.x == " + mRightCircle.x+", mLeftCircle.x == " + mLeftCircle.x);
+
+        calculateContentToShow(false, false);
+        //iconView旋转控制
+        if(iconView != null ){
+            rotateDegrees = (int)(degrees * progress);
+            iconView.setRotation(rotateDegrees);
+        }
+
+        requestLayout();
     }
 
 
@@ -658,19 +695,4 @@ public class ExpandableButton extends LinearLayout {
 
     }
 
-    private class FoldableButtonHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case IS_SLIDE_DECREASE: //递减状态, degrees --> 0
-                    calculateFieldsWhenDecrease();
-                    break;
-                case IS_SLIDE_INCREASE: //递增状态, 0 --> degrees
-                    calculateFieldsWhenIncrease();
-                    break;
-            }
-            resetContentLayoutParams();
-            invalidate();
-        }
-    }
 }

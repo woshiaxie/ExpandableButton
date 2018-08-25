@@ -55,6 +55,7 @@
         app:iconLeft="true"
         app:borderColor="#cccccc"
         app:borderWidth="1dp"
-        app:iconRotateDegree="0"/>
+        app:duration="600"
+        app:iconRotateDegree="90"/>
 </FrameLayout>
 
