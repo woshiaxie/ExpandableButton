@@ -419,7 +419,7 @@ public class ExpandableButton extends LinearLayout {
                 mRightCircle.x + radius,
                 height-borderWidth
         );
-        canvas.drawRoundRect(rectOutter, borderCornerRadius+borderWidth, borderCornerRadius+borderWidth, paint);
+        canvas.drawRoundRect(rectOutter, borderCornerRadius, borderCornerRadius, paint);
         //绘制里层背景色
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(contentBackgroundColor);
