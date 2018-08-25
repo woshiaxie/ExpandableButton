@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fl"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.m520it.myapplication.TestMyRectActivity">
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/app_bar_height"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <android.support.design.widget.CollapsingToolbarLayout
+                android:id="@+id/toolbar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_scrollFlags="scroll|enterAlwaysCollapsed|snap">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@mipmap/qiyexue"
+                    android:scaleType="centerCrop"/>
+
+            </android.support.design.widget.CollapsingToolbarLayout>
+        </android.support.design.widget.AppBarLayout>
+
+        <include layout="@layout/content_scrolling" />
+
+    </android.support.design.widget.CoordinatorLayout>
+
+    <com.huang.library.ExpandableButton
+        android:id="@+id/text"
+        android:layout_width="300dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="160dp"
+        app:stepRatio="0.08"
+        app:contentText="跋涉千里来与你道别,在最初和最后的雪夜.冰冷寂静的荒原上 并肩走过的我们"
+        app:contentTextColor="#999999"
+        app:contentTextSize="12dp"
+        app:contentBackgroundColor="#ffffff"
+        app:iconText="雪"
+        app:iconTextSize="11dp"
+        app:iconTextColor="#999999"
+        app:iconBackgroundColor="#eeeeee"
+        app:iconLeft="true"
+        app:borderColor="#cccccc"
+        app:borderWidth="1dp"
+        app:iconRotateDegree="-180"/>
+</FrameLayout>
+

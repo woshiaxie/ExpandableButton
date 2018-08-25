@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ExpandableButton">
+        <!--字体大小-->
+        <attr name="contentTextSize" format="dimension"/>
+        <!--字体颜色-->
+        <attr name="contentTextColor" format="color"/>
+        <!--文本-->
+        <attr name="contentText" format="string"/>
+        <!--控件背景颜色-->
+        <attr name="contentBackgroundColor" format="color"/>
+
+        <!--icon字体大小-->
+        <attr name="iconTextSize" format="dimension"/>
+        <!--icon字体颜色-->
+        <attr name="iconTextColor" format="color"/>
+        <!--icon文本-->
+        <attr name="iconText" format="string"/>
+        <!--控件背景颜色-->
+        <attr name="iconBackgroundColor" format="color"/>
+
+        <!--折叠速度 : 收缩/伸展的步长占总宽度的多少，值越大收缩越快-->
+        <attr name="stepRatio" format="float"/>
+
+
+
+        <!--是否支持icon旋转-->
+        <!--<attr name="iconRotatable" format="boolean"/>-->
+        <!--图标旋转角度-->
+        <attr name="iconRotateDegree" format="integer"/>
+        <!--图标缩放的比例-->
+        <attr name="iconScaleRatio" format="float"/>
+        <!--最大宽度-->
+        <attr name="maxWidth" format="dimension"/>
+        <!--初始化时是否显示折叠态，为false就显示展开-->
+        <attr name="initFolded" format="boolean"/>
+        <!--iconView是否在左侧-->
+        <attr name="iconLeft" format="boolean"/>
+        <!--内容与icon的间距-->
+        <attr name="contentIconSpace" format="dimension"/>
+
+        <!--整个组件的边框宽度-->
+        <attr name="borderWidth" format="dimension"/>
+        <!--整个组件的边框颜色-->
+        <attr name="borderColor" format="color"/>
+        <!--整个组件的边框圆角-->
+        <attr name="borderCorner" format="dimension"/>
+
+    </declare-styleable>
+
+</resources>
