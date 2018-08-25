@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     internal var appBar: AppBarLayout? = null
 
     internal var expandableBtn: ExpandableButton? = null
+    internal var expandableBtn2: ExpandableButton? = null
 
     internal var fl: FrameLayout? = null
 
@@ -40,7 +41,8 @@ class MainActivity : AppCompatActivity() {
     private fun initViews(){
         toolbarLayout = findViewById(R.id.toolbar_layout)
         appBar = findViewById(R.id.app_bar)
-        expandableBtn = findViewById(R.id.text)
+        expandableBtn = findViewById(R.id.expandableBtn)
+        expandableBtn2 = findViewById(R.id.expandableBtn2)
         fl = findViewById(R.id.fl)
         mTextView = findViewById(R.id.tv_text)
 
@@ -56,6 +58,13 @@ class MainActivity : AppCompatActivity() {
         expandableBtn?.setOnClickListener(ExpandableButton.OnClickListener {
 
             expandableBtn?.switchFoldStatus()
+        })
+
+        expandableBtn2?.setOnClickListener(object:ExpandableButton.OnClickListener{
+            override fun onClick(sfb: ExpandableButton?) {
+                Toast.makeText(this@MainActivity, "点击了", Toast.LENGTH_SHORT).show()
+                sfb?.switchFoldStatus()
+            }
         })
 
         appBar?.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->

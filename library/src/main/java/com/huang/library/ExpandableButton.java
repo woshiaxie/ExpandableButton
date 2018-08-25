@@ -215,7 +215,6 @@ public class ExpandableButton extends LinearLayout {
         iconFont.setTextColor(iconTextColor);
         rootView.addView(iconFont, params);
 
-
         rootView.setTag("icon");
         iconView = rootView;
         addView(iconView,rootParams);
@@ -276,6 +275,8 @@ public class ExpandableButton extends LinearLayout {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float progress = (float)animation.getAnimatedValue();
                 calculateFieldsWhenFold(progress);
+                invalidate();
+                requestLayout();
             }
         });
 
@@ -319,8 +320,9 @@ public class ExpandableButton extends LinearLayout {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float progress = (float)animation.getAnimatedValue();
-                Log.d("MyLog","\nprogress=="+progress);
                 calculateFieldsWhenUnfold(progress);
+                invalidate();
+                requestLayout();
             }
         });
 
@@ -348,13 +350,18 @@ public class ExpandableButton extends LinearLayout {
                 super.onMeasure(widthMeasureSpec,heightMeasureSpec);
             }
 
-            measureChild(contentView, widthMeasureSpec, heightMeasureSpec);
-            textWidth = contentView.getMeasuredWidth();
-            textHeight = contentView.getMeasuredHeight();
+            if(contentView != null) {
+                measureChild(contentView, widthMeasureSpec, heightMeasureSpec);
+                textWidth = contentView.getMeasuredWidth();
+                textHeight = contentView.getMeasuredHeight();
+            }
 
-            measureChild(iconView, widthMeasureSpec, heightMeasureSpec);
-            iconWidth = iconView.getMeasuredWidth();
-            iconHeight = iconView.getMeasuredHeight();
+            if (iconView != null) {
+                measureChild(iconView, widthMeasureSpec, heightMeasureSpec);
+                iconWidth = iconView.getMeasuredWidth();
+                iconHeight = iconView.getMeasuredHeight();
+            }
+
 
             //根据模式设置宽高
             adjustWithAndHeight(widthMeasureSpec,heightMeasureSpec);
@@ -449,6 +456,9 @@ public class ExpandableButton extends LinearLayout {
     }
 
     private void resetContentLayoutParams() {
+        if (contentView == null) {
+            return;
+        }
         ViewGroup.LayoutParams vgParams = contentView.getLayoutParams();
         LinearLayout.LayoutParams params = null;
         if (vgParams != null && vgParams instanceof LinearLayout.LayoutParams) {
@@ -457,11 +467,18 @@ public class ExpandableButton extends LinearLayout {
             params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
         }
 
-        params.width = width - borderCornerRadius - 2 * radius - spaceBetweenContentAndIcon - 2 * borderWidth;
+        if (iconView != null) {
+            params.width = width - borderCornerRadius - 2 * radius - spaceBetweenContentAndIcon - 2 * borderWidth;
+        } else {
+            params.width = width - borderCornerRadius - radius - spaceBetweenContentAndIcon - 2 * borderWidth;
+        }
         contentView.setLayoutParams(params);
     }
 
     private void resetIconViewLayoutParams() {
+        if (iconView == null) {
+            return;
+        }
         ViewGroup.LayoutParams vgParams = iconView.getLayoutParams();
         LinearLayout.LayoutParams params = null;
         if (vgParams != null && vgParams instanceof LinearLayout.LayoutParams) {
@@ -488,6 +505,7 @@ public class ExpandableButton extends LinearLayout {
     private void drawBackgroundRect(Canvas canvas) {
         RectF rectOutter;
         RectF rectInner;
+        Log.d("MyLog","drawBackgroundRect");
         //绘制外层边框
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
         paint.setStrokeWidth(borderWidth);
@@ -515,31 +533,60 @@ public class ExpandableButton extends LinearLayout {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         if (leftStart) {
-            contentView.layout(
-                    mLeftCircle.x + radius + spaceBetweenContentAndIcon,
-                    radius - textHeight / 2,
-                    mRightCircle.x + radius - borderWidth - borderCornerRadius,
-                    radius + textHeight / 2
-            );
-            iconView.layout(
-                    mLeftCircle.x - radius,
-                    mLeftCircle.y - radius,
-                    mLeftCircle.x + radius,
-                    mLeftCircle.y + radius
-            );
+            if (contentView != null) {
+                if (iconView != null) {
+                    contentView.layout(
+                            mLeftCircle.x + radius + spaceBetweenContentAndIcon,
+                            radius - textHeight / 2 + borderWidth,
+                            mRightCircle.x + radius - borderWidth - borderCornerRadius,
+                            radius + textHeight / 2
+                    );
+                } else {
+                    contentView.layout(
+                            radius + spaceBetweenContentAndIcon,
+                            radius - textHeight / 2 + borderWidth,
+                            mRightCircle.x + radius - borderWidth - borderCornerRadius,
+                            radius + textHeight / 2
+                    );
+                }
+
+            }
+            if (iconView != null) {
+                iconView.layout(
+                        mLeftCircle.x - radius,
+                        mLeftCircle.y - radius,
+                        mLeftCircle.x + radius,
+                        mLeftCircle.y + radius
+                );
+            }
+
         } else {
-            contentView.layout(
-                    mLeftCircle.x - radius + borderCornerRadius +  borderWidth,
-                    radius - textHeight / 2,
-                    mRightCircle.x - spaceBetweenContentAndIcon,
-                    radius + textHeight / 2
-            );
-            iconView.layout(
-                    mRightCircle.x - radius,
-                    borderWidth,
-                    mRightCircle.x + radius,
-                    mRightCircle.y + radius
-            );
+            if (contentView != null) {
+                if (iconView != null) {
+                    contentView.layout(
+                            mLeftCircle.x - radius + borderCornerRadius +  borderWidth,
+                            radius - textHeight / 2 + + borderWidth,
+                            mRightCircle.x - spaceBetweenContentAndIcon,
+                            radius + textHeight / 2
+                    );
+                } else {
+                    contentView.layout(
+                            mLeftCircle.x - radius + borderCornerRadius +  borderWidth,
+                            radius - textHeight / 2 + borderWidth ,
+                            mRightCircle.x - spaceBetweenContentAndIcon,
+                            radius + textHeight / 2
+                    );
+                }
+            }
+
+            if (iconView != null) {
+                iconView.layout(
+                        mRightCircle.x - radius,
+                        borderWidth,
+                        mRightCircle.x + radius,
+                        mRightCircle.y + radius
+                );
+            }
         }
 
     }
@@ -613,6 +660,7 @@ public class ExpandableButton extends LinearLayout {
 
     //外部调用
     public void switchFoldStatus() {
+        setEnabled(true);
         if (!isFolded) {    //判断是否是递增状态
             switchToFold();
         } else {
@@ -658,9 +706,8 @@ public class ExpandableButton extends LinearLayout {
             rotateDegrees = (int)(degrees * progress);
             iconView.setRotation(rotateDegrees);
         }
+        Log.d("MyLog","progress == "+progress+", step == " + (gapBetweenCircles * progress) +",mRightCircle.x == " + mRightCircle.x+", mLeftCircle.x == " + mLeftCircle.x);
         calculateContentToShow(false , true);
-        requestLayout();
-
     }
 
     private void calculateFieldsWhenUnfold(float progress) {
@@ -681,8 +728,6 @@ public class ExpandableButton extends LinearLayout {
             rotateDegrees = (int)(degrees * progress);
             iconView.setRotation(rotateDegrees);
         }
-
-        requestLayout();
     }
 
 
