@@ -21,11 +21,6 @@
 
         <!--折叠速度 : 收缩/伸展的步长占总宽度的多少，值越大收缩越快-->
         <attr name="stepRatio" format="float"/>
-
-
-
-        <!--是否支持icon旋转-->
-        <!--<attr name="iconRotatable" format="boolean"/>-->
         <!--图标旋转角度-->
         <attr name="iconRotateDegree" format="integer"/>
         <!--图标缩放的比例-->

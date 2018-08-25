@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FoldableButton</string>
+    <string name="app_name">ExpandableButton</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
     <string name="large_text">
        "雪是不知何时开始下的。

@@ -53,7 +53,6 @@
         app:iconTextColor="#999999"
         app:iconBackgroundColor="#eeeeee"
         app:iconLeft="true"
-        app:borderCorner="12dp"
         app:borderColor="#cccccc"
         app:borderWidth="1dp"
         app:iconRotateDegree="0"/>

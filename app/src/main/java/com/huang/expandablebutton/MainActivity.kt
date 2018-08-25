@@ -6,17 +6,13 @@ import android.os.Bundle
 import android.support.design.widget.AppBarLayout
 import android.support.design.widget.CollapsingToolbarLayout
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import com.huang.library.ExpandableButton
 
 class MainActivity : AppCompatActivity() {
 
-    private var llOffDistance: Float = 0.toFloat()
-    private var params: FrameLayout.LayoutParams? = null
-    private var isUp = false   //判断是否为上滑状态
-    private var isDown = false //判断是否为下拉状态
     private var i = 0
     private var lastOffset: Float = 0f;
 
@@ -48,16 +44,17 @@ class MainActivity : AppCompatActivity() {
         fl = findViewById(R.id.fl)
         mTextView = findViewById(R.id.tv_text)
 
-        expandableBtn?.setFoldListener(ExpandableButton.FoldListener { unFold, sfb ->
-            if (unFold) {
-                isUp = true
+
+        expandableBtn?.setFoldListener(ExpandableButton.FoldListener { isFolded, sfb ->
+            if (isFolded) {
+               Toast.makeText(this@MainActivity, "折叠 ", Toast.LENGTH_SHORT).show()
             }
             else {
-                isDown = true
+                Toast.makeText(this@MainActivity, "展开 ", Toast.LENGTH_SHORT).show()
             }
         })
         expandableBtn?.setOnClickListener(ExpandableButton.OnClickListener {
-            Log.i("TAG", "-----")
+
             expandableBtn?.switchFoldStatus()
         })
 
@@ -68,88 +65,67 @@ class MainActivity : AppCompatActivity() {
                 return@OnOffsetChangedListener
             }
 
-            if (params == null) {
-                params = expandableBtn?.getLayoutParams() as FrameLayout.LayoutParams
-                llOffDistance = params?.topMargin?.toFloat()?:0f
-                isUp = true
-                isDown = true
-            }
-
-            var distance: Float?  = llOffDistance + verticalOffset
-
-            var gap: Float = distance?:0f - lastOffset
-
-            //滑倒顶端状态 保持20的间距
-            if (gap < 0 && gap >= -100f && hasHideButton) {
-                lastOffset = distance?: 0f;
+            if ( verticalOffset >= -100f && hasHideButton) {
+                lastOffset = verticalOffset.toFloat()
                 showButtonIn()
-            } else if (gap > 0 && gap >= 100f && !hasHideButton) {
-                lastOffset = distance?: 0f;
+            } else if (verticalOffset < -100f && !hasHideButton) {
+                lastOffset = verticalOffset.toFloat()
                 showButtonOut()
             }
-            //滑倒底端状态
+            //滑倒顶部状态
             if (verticalOffset == 0) {
-                if (isDown && !expandableBtn?.isFolded()!!) {
-                    //expandableBtn?.switchFoldStatus()
-                }
+                showButtonIn()
             }
-            params?.topMargin = distance?.toInt()
-            fl?.requestLayout()
         })
-
     }
 
     fun showButtonOut() {
-        if (isDown) {
-            isDown = false
-            var animator: ObjectAnimator = ObjectAnimator.ofFloat(expandableBtn, "translationX", -300f).setDuration(1000);
-            animator.addListener(
-                    object: Animator.AnimatorListener{
-                        override fun onAnimationRepeat(animation: Animator?) {
+        var animator: ObjectAnimator = ObjectAnimator.ofFloat(expandableBtn, "translationX", -300f).setDuration(600);
+        animator.addListener(
+                object: Animator.AnimatorListener{
+                    override fun onAnimationRepeat(animation: Animator?) {
 
-                        }
-
-                        override fun onAnimationEnd(animation: Animator?) {
-                            hasHideButton = true
-                        }
-
-                        override fun onAnimationCancel(animation: Animator?) {
-
-                        }
-
-                        override fun onAnimationStart(animation: Animator?) {
-                            expandableBtn?.switchToFold()
-                        }
                     }
-            )
-            animator.start();
-        }
+
+                    override fun onAnimationEnd(animation: Animator?) {
+                        hasHideButton = true
+                    }
+
+                    override fun onAnimationCancel(animation: Animator?) {
+
+                    }
+
+                    override fun onAnimationStart(animation: Animator?) {
+                        expandableBtn?.switchToFold()
+                    }
+                }
+        )
+        animator.start();
     }
+
     fun showButtonIn() {
-        if (isUp) {
-            isUp = false
-            var animator: ObjectAnimator = ObjectAnimator.ofFloat(expandableBtn, "translationX", 0f).setDuration(1000);
-            animator.addListener(
-                    object: Animator.AnimatorListener{
-                        override fun onAnimationRepeat(animation: Animator?) {
+        var animator: ObjectAnimator = ObjectAnimator.ofFloat(expandableBtn, "translationX", 0f).setDuration(600);
+        animator.addListener(
+                object: Animator.AnimatorListener{
+                    override fun onAnimationRepeat(animation: Animator?) {
 
-                        }
-
-                        override fun onAnimationEnd(animation: Animator?) {
-                            expandableBtn?.switchToUnFold()
-                            hasHideButton = false
-                        }
-
-                        override fun onAnimationCancel(animation: Animator?) {
-
-                        }
-
-                        override fun onAnimationStart(animation: Animator?) {
-
-                        }
                     }
-            )
-            animator.start();
-        }
+
+                    override fun onAnimationEnd(animation: Animator?) {
+                        expandableBtn?.switchToUnFold()
+                        hasHideButton = false
+                    }
+
+                    override fun onAnimationCancel(animation: Animator?) {
+
+                    }
+
+                    override fun onAnimationStart(animation: Animator?) {
+
+                    }
+                }
+        )
+        animator.start();
+
     }
 }

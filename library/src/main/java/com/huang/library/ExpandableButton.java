@@ -470,7 +470,7 @@ public class ExpandableButton extends LinearLayout {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                canClick = judgeCanClick(event.getX(), event.getY());
+                canClick = judgeClickable(event.getX(), event.getY());
                 if (!canClick)
                     return super.onTouchEvent(event);
                 break;
@@ -483,9 +483,9 @@ public class ExpandableButton extends LinearLayout {
         return true;
     }
 
-    private boolean judgeCanClick(float x, float y) {
+    private boolean judgeClickable(float x, float y) {
         boolean canClick;
-        if (isFolded) {   //伸展状态
+        if (!isFolded) {   //伸展状态
             if (x < width && y < height) {
                 canClick = true;
             }else {
@@ -543,7 +543,7 @@ public class ExpandableButton extends LinearLayout {
     }
 
     public interface FoldListener {
-        void onFold(boolean isIncrease, ExpandableButton sfb);
+        void onFold(boolean isFolded, ExpandableButton sfb);
     }
 
     public void setOnClickListener(OnClickListener onClickListener) {
@@ -559,7 +559,7 @@ public class ExpandableButton extends LinearLayout {
     }
 
     private void calculateFieldsWhenDecrease() {
-
+        isFolded = true;
         gapBetweenCircles = Math.abs(mRightCircle.x - mLeftCircle.x);
         if (gapBetweenCircles > step + radius +  borderWidth) {
             if (leftStart) {
@@ -604,6 +604,7 @@ public class ExpandableButton extends LinearLayout {
     }
 
     private void calculateFieldsWhenIncrease() {
+        isFolded = false;
         gapBetweenCircles = Math.abs(mRightCircle.x - mLeftCircle.x);
         if (gapBetweenCircles <= width - 3 * radius) {
             //修改两个圆的位置
@@ -669,7 +670,6 @@ public class ExpandableButton extends LinearLayout {
                     break;
             }
             resetContentLayoutParams();
-            //resetIconViewLayoutParams();
             invalidate();
         }
     }
