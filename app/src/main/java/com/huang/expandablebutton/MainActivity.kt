@@ -30,7 +30,6 @@ class MainActivity : AppCompatActivity() {
 
     internal var hasHideButton: Boolean = false
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
