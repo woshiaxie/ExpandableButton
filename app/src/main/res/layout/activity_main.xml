@@ -37,7 +37,7 @@
     </android.support.design.widget.CoordinatorLayout>
 
     <com.huang.library.ExpandableButton
-        android:id="@+id/text"
+        android:id="@+id/expandableBtn"
         android:layout_width="300dp"
         android:layout_height="40dp"
         android:layout_marginLeft="10dp"
@@ -56,6 +56,28 @@
         app:borderColor="#cccccc"
         app:borderWidth="1dp"
         app:duration="600"
-        app:iconRotateDegree="90"/>
+        app:iconRotateDegree="360"/>
+    <com.huang.library.ExpandableButton
+        android:id="@+id/expandableBtn2"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="360dp"
+        android:layout_gravity="right"
+        app:stepRatio="0.08"
+        app:contentText="跋涉千里来与你道别,在最初和最后的雪夜.冰冷寂静的荒原上 并肩走过的我们"
+        app:contentTextColor="#999999"
+        app:contentTextSize="12dp"
+        app:contentBackgroundColor="#ffffff"
+        app:iconText="雪"
+        app:iconTextSize="11dp"
+        app:iconTextColor="#999999"
+        app:iconBackgroundColor="#eeeeee"
+        app:iconLeft="false"
+        app:borderColor="#cccccc"
+        app:borderWidth="1dp"
+        app:duration="600"
+        app:iconRotateDegree="360"/>
 </FrameLayout>
 
