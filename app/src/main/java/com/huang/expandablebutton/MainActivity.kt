@@ -9,13 +9,13 @@ import android.support.v7.app.AppCompatActivity
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.huang.expandablebutton.MyLog.Companion.logd
 import com.huang.library.ExpandableButton
 
 class MainActivity : AppCompatActivity() {
     private var in_out_duration: Long = 800
     private var i = 0
-    private var lastOffset: Float = 0f;
-
+    private var lastOffset: Float = 0f
 
     internal var toolbarLayout: CollapsingToolbarLayout? = null
 
@@ -46,14 +46,16 @@ class MainActivity : AppCompatActivity() {
         mTextView = findViewById(R.id.tv_text)
 
 
-        expandableBtn?.setFoldListener(ExpandableButton.FoldListener { isFolded, sfb ->
+        expandableBtn?.setFoldListener { isFolded, sfb ->
             if (isFolded) {
-               Toast.makeText(this@MainActivity, "折叠 ", Toast.LENGTH_SHORT).show()
+                logd("isFolded == ${sfb.isFolded}")
+                Toast.makeText(this@MainActivity, "折叠 ", Toast.LENGTH_SHORT).show()
             }
             else {
+                logd("isFolded == ${sfb.isFolded}")
                 Toast.makeText(this@MainActivity, "展开 ", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
         expandableBtn?.setOnClickListener(ExpandableButton.OnClickListener {
 
             expandableBtn?.switchFoldStatus()
